@@ -1,0 +1,18 @@
+sudo: required
+services:
+  - docker
+language: generic
+before_install:
+  - docker build -t ashah2193/client-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true ashah2193/client-test npm run test -- --coverage
+after_success:
+  - docker build -t ashah2193/multi-client ./client
+  - docker build -t ashah2193/multi-nginx ./nginx
+  - docker build -t ashah2193/multi-server ./server
+  - docker build -t ashah2193/multi-worker ./worker
+  - echo "$DOCKER_PWD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ashah2193/multi-client
+  - docker push ashah2193/multi-nginx
+  - docker push ashah2193/multi-server
+  - docker push ashah2193/multi-worker
